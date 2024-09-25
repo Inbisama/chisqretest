@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카이제곱 분포와 자유도</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            background-color: #F2F2F2;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body style="background-color: #F2F2F2; font-family: Arial, sans-serif;">
+    <div class="container">
+        <h2>카이제곱 분포와 자유도</h2>
+        
+        <label for="degreesOfFreedom">자유도:</label>
+        <input type="number" id="degreesOfFreedom" value="2" min="1" max="50">
+        
+        <canvas id="chiSquareChart" width="600" height="300"></canvas>
+    </div>
+
+    <script>
+        function createChiSquareDistribution(df) {
+            const xValues = [];
+            const chiSquareValues = [];
+
+            for (let i = 0; i <= 300; i++) {
+                let x = i / 10;  // x 값이 최대 30
+                xValues.push(x);
+
+                // 카이제곱 분포 공식 (PDF)
+                let chiSquareProb = (Math.pow(x, df/2 - 1) * Math.exp(-x / 2)) / (Math.pow(2, df / 2) * gamma(df / 2));
+                chiSquareValues.push(chiSquareProb);
+            }
+
+            return { xValues, chiSquareValues };
+        }
+
+        function gamma(n) {
+            // 감마 함수 근사 (스털링 공식)
+            const sqrtTwoPi = Math.sqrt(2 * Math.PI);
+            return sqrtTwoPi * Math.pow(n - 1, n - 0.5) * Math.exp(-(n - 1));
+        }
+
+        function updateChart() {
+            const df = parseInt(document.getElementById('degreesOfFreedom').value);
+            const { xValues, chiSquareValues } = createChiSquareDistribution(df);
+
+            chiSquareChart.data.labels = xValues;
+            chiSquareChart.data.datasets[0].data = chiSquareValues;
+            chiSquareChart.data.datasets[0].label = `Chi-Square Distribution (df = ${df})`;
+
+            chiSquareChart.update();
+        }
+
+        document.getElementById('degreesOfFreedom').addEventListener('input', updateChart);
+
+        const ctx = document.getElementById('chiSquareChart').getContext('2d');
+        const chiSquareChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Chi-Square Distribution',
+                    data: [],
+                    borderColor: '#2E9B7C',
+                    borderWidth: 2,
+                    fill: false,
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'linear',
+                        min: 0,
+                        max: 30,  // x축 최대값 30
+                        title: {
+                            display: true,
+                            text: 'x축',
+                        }
+                    },
+                    y: {
+                        min: 0,
+                        max: 0.3,  // y축 최대값 0.1
+                        title: {
+                            display: true,
+                            text: '확률 밀도',
+                        }
+                    }
+                }
+            }
+        });
+
+        // 초기에 차트를 업데이트해서 표시
+        updateChart();
+    </script>
+</body>
+</html>
